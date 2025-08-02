@@ -2,26 +2,29 @@ import { useEffect, useRef, useState } from 'react';
 
 import NoTaskView from './NoTaskView';
 import TaskList from './TaskList';
+import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 
-// Task Structure = {id, title}
+// Task Structure = {id, title, done}
 
 const TasksContainer = ({ taskListTitle }) => {
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
+    const [isShowingCompleted, setIsShowingCompleted] = useState(false);
     const maxIdRef = useRef(0);
 
     const saveTask = () => {
         maxIdRef.current += 1;
-        const newTaskList = [...tasks, { id: maxIdRef.current, title: newTask }];
+        const newTaskList = [...tasks, { id: maxIdRef.current, title: newTask, done: false }];
         setTasks(newTaskList);
         setNewTask('');
         localStorage.setItem(`Tasks-${taskListTitle}`, JSON.stringify(newTaskList));
     };
 
-    const updateTask = (id, title) => {
+    const updateTask = (updatedTask) => {
         const newTaskList = tasks.map((task) => {
-            if (task.id === id) {
-                task.title = title;
+            if (task.id === updatedTask.id) {
+                task.title = updatedTask.title;
+                task.done = updatedTask.done;
             }
             return task;
         });
@@ -38,10 +41,33 @@ const TasksContainer = ({ taskListTitle }) => {
             : 1;
     }, [setTasks, taskListTitle]);
 
+    const [draggingId, setDraggingId] = useState(null);
+
+    const handleDragStart = (e, id) => {
+        setDraggingId(id);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDrop = (e, targetId) => {
+        e.preventDefault();
+        if (draggingId === null || draggingId === targetId) return;
+
+        const draggedIndex = tasks.findIndex((task) => task.id === draggingId);
+        const targetIndex = tasks.findIndex((task) => task.id === targetId);
+
+        const updatedTasks = [...tasks];
+        const [draggedItem] = updatedTasks.splice(draggedIndex, 1);
+        updatedTasks.splice(targetIndex, 0, draggedItem);
+
+        setTasks(updatedTasks);
+        localStorage.setItem(`Tasks-${taskListTitle}`, JSON.stringify(updatedTasks));
+        setDraggingId(null);
+    };
+
     return (
         <div className="min-w-[25rem] min-h-[20rem] max-w-[30rem]  bg-slate-200 rounded p-4">
             <h2 className="text-center text-2xl">{taskListTitle}</h2>
-            <div className="mb-4 flex my-4">
+            <div className="flex my-2">
                 <input
                     type="text"
                     value={newTask}
@@ -55,9 +81,39 @@ const TasksContainer = ({ taskListTitle }) => {
                     }}
                 />
             </div>
-            <div className={`flex h-full ${tasks.length === 0 ? 'justify-center items-center' : 'pt-5'}`}>
-                {tasks.length ? <TaskList tasks={tasks} updateTask={updateTask} /> : <NoTaskView />}
+            <div className={`flex ${tasks.length === 0 ? 'h-full justify-center items-center' : 'pt-3'}`}>
+                {tasks.filter((task) => !task.done).length ? (
+                    <TaskList
+                        tasks={tasks.filter((task) => !task.done)}
+                        updateTask={updateTask}
+                        handleDragStart={handleDragStart}
+                        handleDrop={handleDrop}
+                    />
+                ) : (
+                    <NoTaskView />
+                )}
             </div>
+            {!!tasks.filter((task) => task.done).length && (
+                <div className="mt-3">
+                    <div
+                        className="flex mb-2 cursor-pointer"
+                        onClick={() => setIsShowingCompleted(!isShowingCompleted)}
+                    >
+                        {isShowingCompleted ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                        Completed
+                    </div>
+                    <div className="ml-4">
+                        {isShowingCompleted && (
+                            <TaskList
+                                tasks={tasks.filter((task) => task.done)}
+                                updateTask={updateTask}
+                                handleDragStart={handleDragStart}
+                                handleDrop={handleDrop}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

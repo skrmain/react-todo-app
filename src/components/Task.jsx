@@ -1,27 +1,46 @@
+import { GripVerticalIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 
-const Task = ({ task, updateTask }) => {
+const Task = ({ task, updateTask, handleDragStart, handleDrop }) => {
     const [isEditing, setIsEditing] = useState(false);
+
     return (
-        <div className="flex gap-1">
-            <input type="checkbox" />
+        <div
+            className="flex gap-1 w-full"
+            draggable={!task.done}
+            onDragStart={(e) => handleDragStart(e, task.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, task.id)}
+        >
+            {!task.done && <GripVerticalIcon className="cursor-grab" />}
+            <input
+                type="checkbox"
+                checked={task.done}
+                onChange={() => {
+                    updateTask({ ...task, done: !task.done });
+                }}
+            />
             {isEditing ? (
                 <input
                     value={task.title}
                     className="w-full"
                     onInput={(e) => {
-                        updateTask(task.id, e.target.value);
+                        updateTask({ ...task, title: e.target.value });
                     }}
                 />
             ) : (
-                <p
-                    onMouseDown={(e) => {
-                        console.log('E', e);
-                        setIsEditing(true);
-                    }}
-                >
-                    {task.title}
-                </p>
+                <div className="flex items-center w-full justify-between">
+                    <p
+                        onMouseDown={() => {
+                            if (task.done) return;
+                            setIsEditing(true);
+                        }}
+                        className={`${task.done ? 'line-through' : ''}`}
+                    >
+                        {task.title}
+                    </p>
+                    <TrashIcon size={15} color="red" className="cursor-pointer" />
+                </div>
             )}
         </div>
     );
