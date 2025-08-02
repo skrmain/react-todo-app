@@ -6,16 +6,17 @@ const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) =
 
     return (
         <div
-            className="flex gap-1 w-full"
+            className="flex gap-1 w-full items-center"
             draggable={!task.done}
             onDragStart={(e) => handleDragStart(e, task.id)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, task.id)}
         >
-            {!task.done && <GripVerticalIcon className="cursor-grab" />}
+            {!task.done && <GripVerticalIcon className="cursor-grab" size={20} />}
             <input
                 type="checkbox"
                 checked={task.done}
+                className="cursor-pointer"
                 onChange={() => {
                     updateTask({ ...task, done: !task.done });
                 }}
