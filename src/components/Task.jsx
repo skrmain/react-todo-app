@@ -1,7 +1,7 @@
 import { GripVerticalIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 
-const Task = ({ task, updateTask, handleDragStart, handleDrop }) => {
+const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) => {
     const [isEditing, setIsEditing] = useState(false);
 
     return (
@@ -39,7 +39,7 @@ const Task = ({ task, updateTask, handleDragStart, handleDrop }) => {
                     >
                         {task.title}
                     </p>
-                    <TrashIcon size={15} color="red" className="cursor-pointer" />
+                    <TrashIcon size={15} color="red" className="cursor-pointer" onClick={() => handleDelete(task.id)} />
                 </div>
             )}
         </div>

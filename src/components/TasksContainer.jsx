@@ -10,7 +10,17 @@ const TasksContainer = ({ taskListTitle }) => {
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
     const [isShowingCompleted, setIsShowingCompleted] = useState(false);
+    const [draggingId, setDraggingId] = useState(null);
     const maxIdRef = useRef(0);
+
+    useEffect(() => {
+        const storedTasksRaw = localStorage.getItem(`Tasks-${taskListTitle}`) || '[]';
+        const storedTasks = JSON.parse(storedTasksRaw);
+        setTasks(storedTasks);
+        maxIdRef.current = storedTasks.length
+            ? storedTasks?.reduce((max, current) => (current.id > max ? current.id : max))
+            : 1;
+    }, [setTasks, taskListTitle]);
 
     const saveTask = () => {
         maxIdRef.current += 1;
@@ -32,17 +42,6 @@ const TasksContainer = ({ taskListTitle }) => {
         localStorage.setItem(`Tasks-${taskListTitle}`, JSON.stringify(newTaskList));
     };
 
-    useEffect(() => {
-        const storedTasksRaw = localStorage.getItem(`Tasks-${taskListTitle}`) || '[]';
-        const storedTasks = JSON.parse(storedTasksRaw);
-        setTasks(storedTasks);
-        maxIdRef.current = storedTasks.length
-            ? storedTasks?.reduce((max, current) => (current.id > max ? current.id : max))
-            : 1;
-    }, [setTasks, taskListTitle]);
-
-    const [draggingId, setDraggingId] = useState(null);
-
     const handleDragStart = (e, id) => {
         setDraggingId(id);
         e.dataTransfer.effectAllowed = 'move';
@@ -62,6 +61,15 @@ const TasksContainer = ({ taskListTitle }) => {
         setTasks(updatedTasks);
         localStorage.setItem(`Tasks-${taskListTitle}`, JSON.stringify(updatedTasks));
         setDraggingId(null);
+    };
+
+    const handleDelete = (id) => {
+        const wantToDelete = confirm('Do you really want to delete?');
+        if (wantToDelete) {
+            const newTaskList = tasks.filter((task) => task.id !== id);
+            setTasks(newTaskList);
+            localStorage.setItem(`Tasks-${taskListTitle}`, JSON.stringify(newTaskList));
+        }
     };
 
     return (
@@ -88,6 +96,7 @@ const TasksContainer = ({ taskListTitle }) => {
                         updateTask={updateTask}
                         handleDragStart={handleDragStart}
                         handleDrop={handleDrop}
+                        handleDelete={handleDelete}
                     />
                 ) : (
                     <NoTaskView />
@@ -109,6 +118,7 @@ const TasksContainer = ({ taskListTitle }) => {
                                 updateTask={updateTask}
                                 handleDragStart={handleDragStart}
                                 handleDrop={handleDrop}
+                                handleDelete={handleDelete}
                             />
                         )}
                     </div>

@@ -1,6 +1,6 @@
 import Task from './Task';
 
-const TaskList = ({ tasks, updateTask, handleDragStart, handleDrop }) => {
+const TaskList = ({ tasks, updateTask, handleDragStart, handleDrop, handleDelete }) => {
     return (
         <div className="flex flex-col w-full">
             <div className="flex flex-col gap-3 w-full">
@@ -11,6 +11,7 @@ const TaskList = ({ tasks, updateTask, handleDragStart, handleDrop }) => {
                         updateTask={updateTask}
                         handleDragStart={handleDragStart}
                         handleDrop={handleDrop}
+                        handleDelete={handleDelete}
                     />
                 ))}
             </div>
