@@ -7,8 +7,7 @@ import ThemeToggle from './components/ThemeToggle';
 const BOARDS = ['Today Tasks', 'Next Priority', 'Backlog'];
 const THEME_STORAGE_KEY = 'todo-theme-preference';
 
-const getSystemTheme = () =>
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+const getSystemTheme = () => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
 function App() {
     const [themePreference, setThemePreference] = useState('system');
@@ -39,9 +38,14 @@ function App() {
         localStorage.setItem(THEME_STORAGE_KEY, 'system');
 
         const handleSystemChange = () => applyTheme('system');
-        mediaQuery.addEventListener('change', handleSystemChange);
 
-        return () => mediaQuery.removeEventListener('change', handleSystemChange);
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', handleSystemChange);
+            return () => mediaQuery.removeEventListener('change', handleSystemChange);
+        }
+
+        mediaQuery.addListener(handleSystemChange);
+        return () => mediaQuery.removeListener(handleSystemChange);
     }, [themePreference]);
 
     return (

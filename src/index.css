@@ -14,7 +14,9 @@
     --radius-xl: 1.25rem;
 
     --color-text: #0f172a;
+    --color-text-strong: #020617;
     --color-text-muted: #475569;
+    --color-text-subtle: #94a3b8;
     --color-bg: #f8fafc;
     --color-bg-soft: #e2e8f0;
     --color-surface: rgba(255, 255, 255, 0.86);
@@ -35,7 +37,9 @@
 
 :root[data-theme='dark'] {
     --color-text: #e2e8f0;
+    --color-text-strong: #f8fafc;
     --color-text-muted: #cbd5e1;
+    --color-text-subtle: #94a3b8;
     --color-bg: #020617;
     --color-bg-soft: #1e293b;
     --color-surface: rgba(15, 23, 42, 0.75);
@@ -119,12 +123,21 @@ body {
 }
 
 :root[data-theme='dark'] .text-slate-900,
-:root[data-theme='dark'] .text-slate-800,
+:root[data-theme='dark'] .text-slate-800 {
+    color: var(--color-text-strong);
+}
+
 :root[data-theme='dark'] .text-slate-700,
-:root[data-theme='dark'] .text-slate-600,
-:root[data-theme='dark'] .text-slate-500,
-:root[data-theme='dark'] .text-slate-400 {
+:root[data-theme='dark'] .text-slate-600 {
     color: var(--color-text);
+}
+
+:root[data-theme='dark'] .text-slate-500 {
+    color: var(--color-text-muted);
+}
+
+:root[data-theme='dark'] .text-slate-400 {
+    color: var(--color-text-subtle);
 }
 
 :root[data-theme='dark'] .placeholder\:text-slate-400::placeholder {
@@ -139,6 +152,14 @@ body {
 :root[data-theme='dark'] .bg-slate-100,
 :root[data-theme='dark'] .bg-\[var\(--color-surface-muted\)\] {
     background-color: var(--color-surface-muted);
+}
+
+:root[data-theme='dark'] .bg-white\/70 {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 82%, transparent);
+}
+
+:root[data-theme='dark'] .bg-white\/85 {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 92%, transparent);
 }
 
 :root[data-theme='dark'] .border-slate-200,
