@@ -8,6 +8,8 @@ import ThemeToggle from './components/ThemeToggle';
 const BOARDS = ['Today Tasks', 'Next Priority', 'Backlog'];
 const THEME_STORAGE_KEY = 'todo-theme-preference';
 
+const VALID_THEMES = new Set(['system', 'dark', 'light']);
+
 const getSystemTheme = () => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
 const DEFAULT_SECTIONS = [
@@ -83,8 +85,10 @@ function App() {
             return () => mediaQuery.removeEventListener('change', handleSystemChange);
         }
 
-        mediaQuery.addListener(handleSystemChange);
-        return () => mediaQuery.removeListener(handleSystemChange);
+        mediaQuery.onchange = handleSystemChange;
+        return () => {
+            mediaQuery.onchange = null;
+        };
     }, [themePreference]);
 
     useEffect(() => {
