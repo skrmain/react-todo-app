@@ -1,4 +1,4 @@
-import { GripVerticalIcon, TrashIcon } from 'lucide-react';
+import { GripVerticalIcon, PencilLineIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
 const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) => {
@@ -6,41 +6,73 @@ const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) =
 
     return (
         <div
-            className="flex gap-1 w-full items-center"
+            className={`group flex w-full items-center gap-2 rounded-xl border px-3 py-2 transition ${
+                task.done
+                    ? 'border-slate-200 bg-white/70'
+                    : 'border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:shadow'
+            }`}
             draggable={!task.done}
             onDragStart={(e) => handleDragStart(e, task.id)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, task.id)}
         >
-            {!task.done && <GripVerticalIcon className="cursor-grab" size={20} />}
+            {!task.done ? <GripVerticalIcon className="cursor-grab text-slate-400" size={18} /> : null}
             <input
                 type="checkbox"
                 checked={task.done}
-                className="cursor-pointer"
+                className="h-4 w-4 cursor-pointer accent-slate-900"
                 onChange={() => {
                     updateTask({ ...task, done: !task.done });
+                    if (!task.done) {
+                        setIsEditing(false);
+                    }
                 }}
             />
+
             {isEditing ? (
                 <input
                     value={task.title}
-                    className="w-full"
+                    autoFocus
+                    className="w-full rounded-md bg-slate-100 px-2 py-1 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:ring-slate-300"
                     onInput={(e) => {
                         updateTask({ ...task, title: e.target.value });
                     }}
+                    onBlur={() => setIsEditing(false)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Escape') {
+                            setIsEditing(false);
+                        }
+                    }}
                 />
             ) : (
-                <div className="flex items-center w-full justify-between">
+                <div className="flex w-full items-center justify-between gap-2">
                     <p
-                        onMouseDown={() => {
-                            if (task.done) return;
-                            setIsEditing(true);
+                        onDoubleClick={() => {
+                            if (!task.done) setIsEditing(true);
                         }}
-                        className={`${task.done ? 'line-through' : ''}`}
+                        className={`w-full truncate text-sm ${task.done ? 'text-slate-400 line-through' : 'text-slate-700'}`}
+                        title={task.done ? task.title : 'Double click to edit'}
                     >
                         {task.title}
                     </p>
-                    <TrashIcon size={15} color="red" className="cursor-pointer" onClick={() => handleDelete(task.id)} />
+                    {!task.done ? (
+                        <button
+                            type="button"
+                            onClick={() => setIsEditing(true)}
+                            className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            aria-label={`Edit ${task.title}`}
+                        >
+                            <PencilLineIcon size={14} />
+                        </button>
+                    ) : null}
+                    <button
+                        type="button"
+                        onClick={() => handleDelete(task.id)}
+                        className="rounded-md p-1 text-rose-500 transition hover:bg-rose-50 hover:text-rose-600"
+                        aria-label={`Delete ${task.title}`}
+                    >
+                        <Trash2Icon size={14} />
+                    </button>
                 </div>
             )}
         </div>

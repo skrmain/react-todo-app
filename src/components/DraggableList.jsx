@@ -1,66 +1,62 @@
-import { GripVerticalIcon } from 'lucide-react';
+import { GripVerticalIcon, HandIcon } from 'lucide-react';
 import { useState } from 'react';
+
+import PanelCard from './PanelCard';
 
 const DraggableList = () => {
     const [draggingId, setDraggingId] = useState(null);
     const [list, setList] = useState(['Apple', 'Banana', 'Cat', 'Dog']);
 
+    const handleDrop = (target) => {
+        if (draggingId === null || draggingId === target) return;
+
+        const draggedIndex = list.findIndex((item) => item === draggingId);
+        const targetIndex = list.findIndex((item) => item === target);
+        if (draggedIndex < 0 || targetIndex < 0) return;
+
+        const updatedList = [...list];
+        const [draggedItem] = updatedList.splice(draggedIndex, 1);
+        updatedList.splice(targetIndex, 0, draggedItem);
+
+        setList(updatedList);
+        setDraggingId(null);
+    };
+
     return (
-        <div className="bg-slate-100 w-[15rem] p-3 rounded">
-            <h2 className="text-center m-3">Draggable List</h2>
-            <div className="flex flex-col">
-                {list.map((v) => (
+        <PanelCard
+            title="Drag Demo"
+            subtitle="Practice ordering a simple list"
+            icon={HandIcon}
+            className="lg:sticky lg:top-6"
+        >
+            <div className="flex flex-col gap-2">
+                {list.map((item) => (
                     <div
-                        key={v}
-                        draggable={true}
+                        key={item}
+                        draggable
                         onDragStart={(e) => {
-                            // console.log('AA', e);
-                            // e.stopPropagation();
-
-                            // if (!e.target.closest('.drag-handle')) {
-                            //     console.log('AA');
-
-                            //     e.preventDefault(); // Cancel drag if not from handle
-                            //     return;
-                            // }
                             e.dataTransfer.effectAllowed = 'move';
-                            setDraggingId(v);
-                            // const dragGhost = e.currentTarget;
-                            // e.dataTransfer.setDragImage(dragGhost, 0, 0); // sets full row as drag image
+                            setDraggingId(item);
                         }}
                         onDragOver={(e) => {
                             e.preventDefault();
-                            // setDraggingId(null);
                         }}
                         onDrop={(e) => {
                             e.preventDefault();
-                            console.log('Dragged', draggingId, ' --> ', 'Target', v);
-
-                            if (draggingId === null || draggingId === v) return;
-                            const draggedIndex = list.findIndex((item) => item === draggingId);
-                            const targetIndex = list.findIndex((item) => item === v);
-
-                            console.log('DR', draggedIndex);
-                            console.log('T', targetIndex);
-                            const updatedList = [...list];
-                            const [draggedItem] = updatedList.splice(draggedIndex, 1);
-                            updatedList.splice(targetIndex, 0, draggedItem);
-
-                            setList(updatedList);
-                            setDraggingId(null);
+                            handleDrop(item);
                         }}
-                        className={`flex gap-1 m-2 ${
-                            draggingId === v ? 'opacity-50' : ''
-                        } transition-all duration-200 ease-in-out`}
+                        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
+                            draggingId === item
+                                ? 'border-slate-300 bg-slate-100 opacity-60'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
                     >
-                        <span className="drag-handle">
-                            <GripVerticalIcon className="drag-handle cursor-grab" />
-                        </span>
-                        <p>{v}</p>
+                        <GripVerticalIcon size={16} className="text-slate-400" />
+                        <p className="text-slate-700">{item}</p>
                     </div>
                 ))}
             </div>
-        </div>
+        </PanelCard>
     );
 };
 
