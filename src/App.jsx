@@ -3,10 +3,12 @@ import { CheckCheckIcon, PanelsTopLeftIcon } from 'lucide-react';
 import DraggableList from './components/DraggableList';
 import TasksContainer from './components/TasksContainer';
 
+const BOARDS = ['Today Tasks', 'Next Priority', 'Backlog'];
+
 function App() {
     return (
-        <div className="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-            <header className="mb-8 rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-[0_10px_50px_-30px_rgba(15,23,42,0.7)] backdrop-blur">
+        <div className="app-shell mx-auto min-h-screen w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <header className="panel-card panel-animate mb-8 p-6">
                 <div className="flex items-center gap-3 text-slate-700">
                     <CheckCheckIcon size={22} />
                     <span className="text-sm font-medium uppercase tracking-[0.2em]">Daily Planner</span>
@@ -19,18 +21,26 @@ function App() {
                 </p>
             </header>
 
-            <main className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-                <TasksContainer taskListTitle="Today Tasks" />
-                <div className="space-y-5">
-                    <DraggableList />
-                    <div className="rounded-2xl border border-slate-200/80 bg-white/85 p-4 text-sm text-slate-600 shadow-[0_10px_40px_-20px_rgba(15,23,42,0.6)] backdrop-blur">
+            <main className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
+                <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    {BOARDS.map((title) => (
+                        <TasksContainer key={title} taskListTitle={title} />
+                    ))}
+                </section>
+
+                <aside className="space-y-5">
+                    {/* <DraggableList /> */}
+                    <div
+                        className="panel-card panel-animate p-4 text-sm text-slate-600"
+                        style={{ animationDelay: '120ms' }}
+                    >
                         <div className="mb-2 flex items-center gap-2 font-medium text-slate-800">
                             <PanelsTopLeftIcon size={16} />
                             Workflow Tip
                         </div>
                         Use the drag handle on active tasks to reorder your focus list based on urgency.
                     </div>
-                </div>
+                </aside>
             </main>
         </div>
     );

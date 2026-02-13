@@ -1,16 +1,17 @@
 import { GripVerticalIcon, PencilLineIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
-const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) => {
+const Task = ({ task, index, updateTask, handleDragStart, handleDrop, handleDelete }) => {
     const [isEditing, setIsEditing] = useState(false);
 
     return (
         <div
-            className={`group flex w-full items-center gap-2 rounded-xl border px-3 py-2 transition ${
+            className={`task-enter group flex w-full items-center gap-2 rounded-[var(--radius-md)] border px-3 py-2 transition ${
                 task.done
                     ? 'border-slate-200 bg-white/70'
                     : 'border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:shadow'
             }`}
+            style={{ '--stagger-index': index }}
             draggable={!task.done}
             onDragStart={(e) => handleDragStart(e, task.id)}
             onDragOver={(e) => e.preventDefault()}
@@ -33,7 +34,7 @@ const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) =
                 <input
                     value={task.title}
                     autoFocus
-                    className="w-full rounded-md bg-slate-100 px-2 py-1 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:ring-slate-300"
+                    className="w-full rounded-[var(--radius-sm)] bg-[var(--color-surface-muted)] px-2 py-1 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:ring-slate-300"
                     onInput={(e) => {
                         updateTask({ ...task, title: e.target.value });
                     }}
@@ -59,7 +60,7 @@ const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) =
                         <button
                             type="button"
                             onClick={() => setIsEditing(true)}
-                            className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            className="rounded-[var(--radius-sm)] p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                             aria-label={`Edit ${task.title}`}
                         >
                             <PencilLineIcon size={14} />
@@ -68,7 +69,7 @@ const Task = ({ task, updateTask, handleDragStart, handleDrop, handleDelete }) =
                     <button
                         type="button"
                         onClick={() => handleDelete(task.id)}
-                        className="rounded-md p-1 text-rose-500 transition hover:bg-rose-50 hover:text-rose-600"
+                        className="rounded-[var(--radius-sm)] p-1 text-rose-500 transition hover:bg-rose-50 hover:text-rose-600"
                         aria-label={`Delete ${task.title}`}
                     >
                         <Trash2Icon size={14} />
