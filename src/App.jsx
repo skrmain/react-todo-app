@@ -1,17 +1,61 @@
 import { CheckCheckIcon, PanelsTopLeftIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-import DraggableList from './components/DraggableList';
 import TasksContainer from './components/TasksContainer';
+import ThemeToggle from './components/ThemeToggle';
 
 const BOARDS = ['Today Tasks', 'Next Priority', 'Backlog'];
+const THEME_STORAGE_KEY = 'todo-theme-preference';
+const VALID_THEMES = new Set(['system', 'dark', 'light']);
+
+const getStoredThemePreference = () => {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    return VALID_THEMES.has(storedTheme) ? storedTheme : 'system';
+};
+
+const getSystemTheme = () => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
 function App() {
+    const [themePreference, setThemePreference] = useState(getStoredThemePreference);
+
+    useEffect(() => {
+        const rootElement = document.documentElement;
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        const applyTheme = (nextPreference) => {
+            const resolvedTheme = nextPreference === 'system' ? getSystemTheme() : nextPreference;
+            rootElement.dataset.theme = resolvedTheme;
+        };
+
+        applyTheme(themePreference);
+        localStorage.setItem(THEME_STORAGE_KEY, themePreference);
+
+        if (themePreference !== 'system') {
+            return undefined;
+        }
+
+        const handleSystemChange = () => applyTheme('system');
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', handleSystemChange);
+            return () => mediaQuery.removeEventListener('change', handleSystemChange);
+        }
+
+        mediaQuery.onchange = handleSystemChange;
+        return () => {
+            mediaQuery.onchange = null;
+        };
+    }, [themePreference]);
+
     return (
         <div className="app-shell mx-auto min-h-screen w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <header className="panel-card panel-animate mb-8 p-6">
-                <div className="flex items-center gap-3 text-slate-700">
-                    <CheckCheckIcon size={22} />
-                    <span className="text-sm font-medium uppercase tracking-[0.2em]">Daily Planner</span>
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 text-slate-700">
+                        <CheckCheckIcon size={22} />
+                        <span className="text-sm font-medium uppercase tracking-[0.2em]">Daily Planner</span>
+                    </div>
+                    <ThemeToggle value={themePreference} onChange={setThemePreference} />
                 </div>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
                     Plan your day with a cleaner board
@@ -29,7 +73,6 @@ function App() {
                 </section>
 
                 <aside className="space-y-5">
-                    {/* <DraggableList /> */}
                     <div
                         className="panel-card panel-animate p-4 text-sm text-slate-600"
                         style={{ animationDelay: '120ms' }}
