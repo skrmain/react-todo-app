@@ -197,3 +197,15 @@ body {
         transition: none;
     }
 }
+
+.dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+}
+
+.dialog-panel {
+    animation-duration: 220ms;
+}

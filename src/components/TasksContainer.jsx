@@ -5,20 +5,21 @@ import {
     CirclePlusIcon,
     ListTodoIcon,
     SparklesIcon,
+    Trash2Icon,
 } from 'lucide-react';
 
 import NoTaskView from './NoTaskView';
 import PanelCard from './PanelCard';
 import TaskList from './TaskList';
 
-const TasksContainer = ({ taskListTitle }) => {
+const TasksContainer = ({ sectionId, taskListTitle, isDefaultSection, requestDeleteConfirm, onDeleteSection }) => {
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
     const [isShowingCompleted, setIsShowingCompleted] = useState(false);
     const [draggingId, setDraggingId] = useState(null);
     const maxIdRef = useRef(0);
 
-    const storageKey = `Tasks-${taskListTitle}`;
+    const storageKey = `Tasks-${sectionId}`;
 
     useEffect(() => {
         const storedTasksRaw = localStorage.getItem(storageKey) || '[]';
@@ -69,23 +70,51 @@ const TasksContainer = ({ taskListTitle }) => {
         setDraggingId(null);
     };
 
-    const handleDelete = (id) => {
-        const wantToDelete = confirm('Do you really want to delete this task?');
-        if (!wantToDelete) return;
+    const handleDeleteTask = async (id) => {
+        const confirmed = await requestDeleteConfirm({
+            title: 'Delete task?',
+            description: 'This task will be removed permanently from this section.',
+            confirmLabel: 'Delete task',
+        });
+        if (!confirmed) return;
         persistTasks(tasks.filter((task) => task.id !== id));
+    };
+
+    const handleDeleteSection = async () => {
+        if (isDefaultSection) return;
+        const confirmed = await requestDeleteConfirm({
+            title: 'Delete section?',
+            description: `All tasks in "${taskListTitle}" will be removed permanently.`,
+            confirmLabel: 'Delete section',
+        });
+        if (!confirmed) return;
+        onDeleteSection(sectionId);
     };
 
     const activeTasks = useMemo(() => tasks.filter((task) => !task.done), [tasks]);
     const completedTasks = useMemo(() => tasks.filter((task) => task.done), [tasks]);
+
+    const sectionActions = !isDefaultSection ? (
+        <button
+            type="button"
+            onClick={handleDeleteSection}
+            className="rounded-[var(--radius-sm)] p-1 text-rose-500 transition hover:bg-rose-50 hover:text-rose-600"
+            aria-label={`Delete ${taskListTitle} section`}
+            title="Delete section"
+        >
+            <Trash2Icon size={16} />
+        </button>
+    ) : null;
 
     return (
         <PanelCard
             title={taskListTitle}
             subtitle="Capture and prioritize your top tasks"
             icon={ListTodoIcon}
+            actions={sectionActions}
             className="min-h-[26rem]"
         >
-            <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+            <div className="mb-4 flex items-center gap-2 rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50 p-2">
                 <input
                     type="text"
                     value={newTask}
@@ -101,7 +130,7 @@ const TasksContainer = ({ taskListTitle }) => {
                 <button
                     type="button"
                     onClick={saveTask}
-                    className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-md)] bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
                 >
                     <CirclePlusIcon size={14} />
                     Add
@@ -115,7 +144,7 @@ const TasksContainer = ({ taskListTitle }) => {
                         updateTask={updateTask}
                         handleDragStart={handleDragStart}
                         handleDrop={handleDrop}
-                        handleDelete={handleDelete}
+                        handleDelete={handleDeleteTask}
                     />
                 ) : (
                     <NoTaskView />
@@ -123,7 +152,7 @@ const TasksContainer = ({ taskListTitle }) => {
             </div>
 
             {!!completedTasks.length && (
-                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+                <div className="mt-4 rounded-[var(--radius-lg)] border border-slate-200 bg-slate-50/80 p-3">
                     <button
                         type="button"
                         className="flex w-full items-center justify-between text-sm font-medium text-slate-700"
@@ -142,7 +171,7 @@ const TasksContainer = ({ taskListTitle }) => {
                                 updateTask={updateTask}
                                 handleDragStart={handleDragStart}
                                 handleDrop={handleDrop}
-                                handleDelete={handleDelete}
+                                handleDelete={handleDeleteTask}
                             />
                         </div>
                     ) : null}
