@@ -7,7 +7,11 @@ const OPTIONS = [
 ];
 
 const ThemeToggle = ({ value, onChange }) => {
+<<<<<<< HEAD
     const activeIndex = OPTIONS.findIndex((option) => option.value === value);
+=======
+    const activeIndex = Math.max(0, OPTIONS.findIndex((option) => option.value === value));
+>>>>>>> 616b83f4200a7394ffc2e1b1da336b7338d86c10
 
     return (
         <div className="theme-toggle relative inline-grid grid-cols-3 rounded-xl p-1" role="radiogroup" aria-label="Theme">
