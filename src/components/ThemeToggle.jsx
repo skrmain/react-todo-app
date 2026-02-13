@@ -7,14 +7,17 @@ const OPTIONS = [
 ];
 
 const ThemeToggle = ({ value, onChange }) => {
-<<<<<<< HEAD
-    const activeIndex = OPTIONS.findIndex((option) => option.value === value);
-=======
-    const activeIndex = Math.max(0, OPTIONS.findIndex((option) => option.value === value));
->>>>>>> 616b83f4200a7394ffc2e1b1da336b7338d86c10
+    const activeIndex = Math.max(
+        0,
+        OPTIONS.findIndex((option) => option.value === value),
+    );
 
     return (
-        <div className="theme-toggle relative inline-grid grid-cols-3 rounded-xl p-1" role="radiogroup" aria-label="Theme">
+        <div
+            className="theme-toggle relative inline-grid grid-cols-3 rounded-xl p-1"
+            role="radiogroup"
+            aria-label="Theme"
+        >
             <span
                 className="theme-toggle-indicator pointer-events-none absolute bottom-1 top-1 rounded-lg"
                 style={{
@@ -36,7 +39,9 @@ const ThemeToggle = ({ value, onChange }) => {
                         title={option.label}
                         onClick={() => onChange(option.value)}
                         className={`relative z-10 inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm transition ${
-                            isActive ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                            isActive
+                                ? 'text-[var(--color-text)]'
+                                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
                         }`}
                     >
                         <option.icon size={16} />
