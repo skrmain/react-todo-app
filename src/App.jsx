@@ -1,55 +1,34 @@
-import { CheckCheckIcon, PanelsTopLeftIcon, PlusIcon } from 'lucide-react';
+import { CheckCheckIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 
 import ConfirmDialog from './components/ConfirmDialog';
 import TasksContainer from './components/TasksContainer';
 import ThemeToggle from './components/ThemeToggle';
 
-const BOARDS = ['Today Tasks', 'Next Priority', 'Backlog'];
 const THEME_STORAGE_KEY = 'todo-theme-preference';
-
-const VALID_THEMES = new Set(['system', 'dark', 'light']);
+const SECTIONS_STORAGE_KEY = 'TaskSections-v2';
+const LEGACY_SECTIONS_STORAGE_KEY = 'TaskSections-v1';
+const WELCOME_DIALOG_STORAGE_KEY = 'todo-welcome-dialog-seen-v1';
 
 const getSystemTheme = () => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
 const DEFAULT_SECTIONS = [
-    { id: 'today-tasks', title: 'Today Tasks', isDefault: true },
-    { id: 'next-priority', title: 'Next Priority', isDefault: true },
-    { id: 'backlog', title: 'Backlog', isDefault: true },
+    { id: 'today-tasks', title: 'My Tasks', isLocked: true },
+    { id: 'next-priority', title: 'Next Priority', isLocked: false },
+    { id: 'backlog', title: 'Backlog', isLocked: false },
 ];
-
-const SECTIONS_STORAGE_KEY = 'TaskSections-v1';
 
 function App() {
     const [sections, setSections] = useState(DEFAULT_SECTIONS);
     const [newSectionTitle, setNewSectionTitle] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
+    const [isWelcomeDialogOpen, setIsWelcomeDialogOpen] = useState(false);
     const [confirmState, setConfirmState] = useState({
         open: false,
         title: '',
         description: '',
         confirmLabel: 'Delete',
     });
-
-    useEffect(() => {
-        const storedRaw = localStorage.getItem(SECTIONS_STORAGE_KEY);
-        if (!storedRaw) {
-            setSections(DEFAULT_SECTIONS);
-            return;
-        }
-
-        try {
-            const parsed = JSON.parse(storedRaw);
-            const validParsed = Array.isArray(parsed)
-                ? parsed.filter((section) => section?.id && section?.title && typeof section?.isDefault === 'boolean')
-                : [];
-
-            const customSections = validParsed.filter((section) => !section.isDefault);
-            setSections([...DEFAULT_SECTIONS, ...customSections]);
-        } catch {
-            setSections(DEFAULT_SECTIONS);
-        }
-    }, []);
 
     const [themePreference, setThemePreference] = useState('system');
 
@@ -92,6 +71,46 @@ function App() {
     }, [themePreference]);
 
     useEffect(() => {
+        const welcomeDialogSeen = localStorage.getItem(WELCOME_DIALOG_STORAGE_KEY);
+        if (!welcomeDialogSeen) {
+            setIsWelcomeDialogOpen(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        const storedRaw = localStorage.getItem(SECTIONS_STORAGE_KEY) || localStorage.getItem(LEGACY_SECTIONS_STORAGE_KEY);
+        if (!storedRaw) {
+            setSections(DEFAULT_SECTIONS);
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(storedRaw);
+            const normalized = Array.isArray(parsed)
+                ? parsed
+                      .filter((section) => section?.id && section?.title)
+                      .map((section) => ({
+                          id: section.id,
+                          title: section.title,
+                          isLocked: Boolean(section?.isLocked ?? (section?.id === 'today-tasks')),
+                      }))
+                : [];
+
+            const primarySection = normalized.find((section) => section.id === 'today-tasks');
+            const otherSections = normalized.filter((section) => section.id !== 'today-tasks');
+
+            setSections([
+                primarySection
+                    ? { ...primarySection, isLocked: true }
+                    : { id: 'today-tasks', title: 'My Tasks', isLocked: true },
+                ...otherSections,
+            ]);
+        } catch {
+            setSections(DEFAULT_SECTIONS);
+        }
+    }, []);
+
+    useEffect(() => {
         localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(sections));
     }, [sections]);
 
@@ -120,9 +139,15 @@ function App() {
         });
     };
 
+    const closeWelcomeDialog = () => {
+        localStorage.setItem(WELCOME_DIALOG_STORAGE_KEY, '1');
+        setIsWelcomeDialogOpen(false);
+    };
+
     const sectionTitleExists = useMemo(() => {
         const normalized = newSectionTitle.trim().toLowerCase();
-        return sections.some((section) => section.title.toLowerCase() === normalized);
+        if (!normalized) return false;
+        return sections.some((section) => section.title.trim().toLowerCase() === normalized);
     }, [newSectionTitle, sections]);
 
     const addSection = () => {
@@ -133,15 +158,17 @@ function App() {
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '')}-${Date.now()}`;
-        setSections((prev) => [...prev, { id: sectionId, title: normalizedTitle, isDefault: false }]);
+
+        setSections((prev) => [...prev, { id: sectionId, title: normalizedTitle, isLocked: false }]);
         setNewSectionTitle('');
         setIsAddingSection(false);
     };
 
     const handleDeleteSection = (sectionId) => {
         setSections((prev) => {
-            const section = prev.find((current) => current.id === sectionId);
-            if (!section || section.isDefault) return prev;
+            const sectionToDelete = prev.find((current) => current.id === sectionId);
+            if (!sectionToDelete || sectionToDelete.isLocked) return prev;
+
             localStorage.removeItem(`Tasks-${sectionId}`);
             return prev.filter((current) => current.id !== sectionId);
         });
@@ -157,14 +184,8 @@ function App() {
                     </div>
                     <ThemeToggle value={themePreference} onChange={setThemePreference} />
                 </div>
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-                    Plan your day with a cleaner board
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
-                    Create sections like Google Tasks lists, add what matters, and trim what you no longer need.
-                </p>
 
-                <div className="mt-5 flex flex-wrap items-center gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                     {!isAddingSection ? (
                         <button
                             type="button"
@@ -214,33 +235,44 @@ function App() {
                 </div>
             </header>
 
-            <main className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
-                <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                    {sections.map((section) => (
-                        <TasksContainer
-                            key={section.id}
-                            sectionId={section.id}
-                            taskListTitle={section.title}
-                            isDefaultSection={section.isDefault}
-                            requestDeleteConfirm={requestDeleteConfirm}
-                            onDeleteSection={handleDeleteSection}
-                        />
-                    ))}
-                </section>
-
-                <aside className="space-y-5">
-                    <div
-                        className="panel-card panel-animate p-4 text-sm text-slate-600"
-                        style={{ animationDelay: '120ms' }}
-                    >
-                        <div className="mb-2 flex items-center gap-2 font-medium text-slate-800">
-                            <PanelsTopLeftIcon size={16} />
-                            Workflow Tip
-                        </div>
-                        Default sections are fixed. Custom sections can be removed from the section header menu.
-                    </div>
-                </aside>
+            <main className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {sections.map((section) => (
+                    <TasksContainer
+                        key={section.id}
+                        sectionId={section.id}
+                        taskListTitle={section.title}
+                        isLockedSection={section.isLocked}
+                        requestDeleteConfirm={requestDeleteConfirm}
+                        onDeleteSection={handleDeleteSection}
+                    />
+                ))}
             </main>
+
+            {isWelcomeDialogOpen ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+                    <button
+                        type="button"
+                        className="dialog-backdrop"
+                        aria-label="Close welcome dialog"
+                        onClick={closeWelcomeDialog}
+                    />
+                    <div className="dialog-panel panel-animate relative z-10 w-full max-w-md rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-white p-6 shadow-2xl">
+                        <h2 className="text-xl font-semibold text-slate-900">Plan your day in one focused space</h2>
+                        <p className="mt-2 text-sm text-slate-600">
+                            Keep important work in clear sections, add what matters now, and remove what you no longer need.
+                        </p>
+                        <div className="mt-5 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={closeWelcomeDialog}
+                                className="rounded-[var(--radius-md)] bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+                            >
+                                Start planning
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
 
             <ConfirmDialog
                 open={confirmState.open}

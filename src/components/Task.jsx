@@ -21,7 +21,7 @@ const Task = ({ task, index, updateTask, handleDragStart, handleDrop, handleDele
             <input
                 type="checkbox"
                 checked={task.done}
-                className="h-4 w-4 shrink-0 cursor-pointer accent-slate-900"
+                className="task-checkbox h-4 w-4 shrink-0 cursor-pointer"
                 onChange={() => {
                     updateTask({ ...task, done: !task.done });
                     if (!task.done) {

@@ -12,7 +12,7 @@ import NoTaskView from './NoTaskView';
 import PanelCard from './PanelCard';
 import TaskList from './TaskList';
 
-const TasksContainer = ({ sectionId, taskListTitle, isDefaultSection, requestDeleteConfirm, onDeleteSection }) => {
+const TasksContainer = ({ sectionId, taskListTitle, isLockedSection, requestDeleteConfirm, onDeleteSection }) => {
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
     const [isShowingCompleted, setIsShowingCompleted] = useState(false);
@@ -81,7 +81,7 @@ const TasksContainer = ({ sectionId, taskListTitle, isDefaultSection, requestDel
     };
 
     const handleDeleteSection = async () => {
-        if (isDefaultSection) return;
+        if (isLockedSection) return;
         const confirmed = await requestDeleteConfirm({
             title: 'Delete section?',
             description: `All tasks in "${taskListTitle}" will be removed permanently.`,
@@ -94,7 +94,7 @@ const TasksContainer = ({ sectionId, taskListTitle, isDefaultSection, requestDel
     const activeTasks = useMemo(() => tasks.filter((task) => !task.done), [tasks]);
     const completedTasks = useMemo(() => tasks.filter((task) => task.done), [tasks]);
 
-    const sectionActions = !isDefaultSection ? (
+    const sectionActions = !isLockedSection ? (
         <button
             type="button"
             onClick={handleDeleteSection}
